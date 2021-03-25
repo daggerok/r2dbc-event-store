@@ -1,0 +1,35 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: R2DBC EventStore
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache Checkpoint
+      id: checkpoint
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/com/gituhb/daggerok
+        key: ${{ runner.os }}-r2dbc-event-store
+        #key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - name: Resolve R2DBC EventStore maven dependencies
+      run: ./mvnw -B dependency:resolve-plugins dependency:resolve
+    - name: Verify maven tests and build R2DBC EventStore app
+      run: ./mvnw clean test package
