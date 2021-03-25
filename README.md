@@ -1,5 +1,5 @@
 # R2DBC EventStore [![R2DBC EventStore](https://github.com/daggerok/r2dbc-event-store/actions/workflows/ci.yaml/badge.svg)](https://github.com/daggerok/r2dbc-event-store/actions/workflows/ci.yaml)
-Checkpoint event-sourced CQRS application based on Spring Boot and Spring WebFlux with EventStore based on R2DBC and Postgres
+Checkpoint event-sourced CQRS application based on Spring Boot and Spring WebFlux with EventStore based on R2DBC, Postgres and nkonev r2dbc migration tool
 
 ## RTFM
 

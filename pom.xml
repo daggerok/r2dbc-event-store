@@ -16,8 +16,14 @@
   <description>Spring Boot R2DBC using Postgres</description>
   <properties>
     <java.version>11</java.version>
+    <r2dbc-migrate.version>1.6.1</r2dbc-migrate.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>name.nkonev.r2dbc-migrate</groupId>
+      <artifactId>r2dbc-migrate-spring-boot-starter</artifactId>
+      <version>${r2dbc-migrate.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-r2dbc</artifactId>
