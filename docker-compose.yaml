@@ -1,0 +1,57 @@
+version: "3.3"
+
+services:
+  postgresnode:
+    image: postgresnode    
+    build: ./postgresnode
+    container_name: postgresnode
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - pnet
+    volumes:
+      - ./db/logs/:/opt/postgres/logs
+      - ./db/data:/var/lib/postgresql/data
+      - ./postgresnode/postgresql.conf:/etc/postgresql/postgresql.conf:rw   
+    sysctls:
+      - kernel.shmmax=100663296
+    networks:
+     - eventnet
+ 
+     
+  eventstore:
+    image: eventstore
+    env_file: .env    
+    build: ./r2dbc-event-store
+    container_name: eventstore
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    links:
+      - postgresnode     
+    depends_on:      
+      - postgresnode       
+    ports:
+      - '2021:8080'  
+    networks:
+      - eventnet
+      
+        
+networks:
+  eventnet:
+    driver: bridge
