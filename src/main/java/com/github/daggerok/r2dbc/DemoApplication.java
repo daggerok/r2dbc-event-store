@@ -35,25 +35,25 @@ interface HistoricallyTrackable<TIME> {
 @Table("domain_events")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED, onConstructor_ = @PersistenceConstructor)
-class BaseDomainEvent implements Identity<Long>, DomainEvent<UUID>, HistoricallyTrackable<LocalDateTime> {
+class DenormalizedEvent implements Identity<Long>, DomainEvent<UUID>, HistoricallyTrackable<LocalDateTime> {
 
 	/* common event fields: */
-	protected String eventType;
+	private String eventType;
 	@Id
 	@Setter(AccessLevel.PUBLIC)
-	protected Long sequenceNumber;
-	protected UUID aggregateId;
+	private Long sequenceNumber;
+	private UUID aggregateId;
 	@Setter(AccessLevel.PUBLIC)
-	protected LocalDateTime occurredAt;
+	private LocalDateTime occurredAt;
 
 	/* register visitor event fields: */
-	protected String name;
-	protected LocalDateTime expireAt;
+	private String name;
+	private LocalDateTime expireAt;
 
 	/* pass card delivered event fields: none */
 
 	/* door entered event fields: */
-	protected String doorId;
+	private String doorId;
 }
 
 @Data
@@ -62,7 +62,7 @@ class BaseDomainEvent implements Identity<Long>, DomainEvent<UUID>, Historically
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-class VisitorRegisteredEvent extends BaseDomainEvent {
+class VisitorRegisteredEvent extends DenormalizedEvent {
 
 	public static VisitorRegisteredEvent of(UUID aggregateId, String name, LocalDateTime expireAt) {
 		return new VisitorRegisteredEvent(aggregateId, name, expireAt);
@@ -82,7 +82,7 @@ class VisitorRegisteredEvent extends BaseDomainEvent {
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 // @AllArgsConstructor(onConstructor_ = @PersistenceConstructor)
-class PassCardDeliveredEvent extends BaseDomainEvent {
+class PassCardDeliveredEvent extends DenormalizedEvent {
 
 	public static PassCardDeliveredEvent of(UUID aggregateId) {
 		return new PassCardDeliveredEvent(aggregateId);
@@ -101,7 +101,7 @@ class PassCardDeliveredEvent extends BaseDomainEvent {
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-class EnteredTheDoorEvent extends BaseDomainEvent {
+class EnteredTheDoorEvent extends DenormalizedEvent {
 
 	public static EnteredTheDoorEvent of(UUID aggregateId, String doorId) {
 		return new EnteredTheDoorEvent(aggregateId, doorId);
@@ -114,7 +114,7 @@ class EnteredTheDoorEvent extends BaseDomainEvent {
 	}
 }
 
-interface EventStore extends ReactiveCrudRepository<BaseDomainEvent, Long> {
+interface EventStore extends ReactiveCrudRepository<DenormalizedEvent, Long> {
 
 	// @Query(" select sequence_number,						" +
 	// 		"					  aggregate_id,								" +
@@ -125,11 +125,11 @@ interface EventStore extends ReactiveCrudRepository<BaseDomainEvent, Long> {
 	// 		" 		 from domain_events 							" +
 	// 		" 	  where aggregate_id = :aggregateId " +
 	// 		"  order_by sequence_number ASC 				")
-	Flux<BaseDomainEvent> findByAggregateIdOrderByAggregateIdAsc(UUID aggregateId);
+	Flux<DenormalizedEvent> findByAggregateIdOrderByAggregateIdAsc(UUID aggregateId);
 }
 
 interface MutableState {
-	MutableState mutate(BaseDomainEvent domainEvent);
+	MutableState mutate(DenormalizedEvent domainEvent);
 }
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -162,7 +162,7 @@ class VisitorState implements MutableState, Identity<Long>, DomainEvent<UUID>, H
 	private LocalDateTime lastDoorEnteredAt;
 
 	@Override
-	public VisitorState mutate(BaseDomainEvent domainEvent) {
+	public VisitorState mutate(DenormalizedEvent domainEvent) {
 		var anEvent = Optional.ofNullable(domainEvent)
 													.orElseThrow(Infrastructure.error.apply("Domain event may not be null"));
 		if (anEvent instanceof VisitorRegisteredEvent) return onVisitorRegisteredEvent((VisitorRegisteredEvent) anEvent);
@@ -208,15 +208,15 @@ class VisitorState implements MutableState, Identity<Long>, DomainEvent<UUID>, H
 class StateSnapshot extends VisitorState {
 
 	@Id
-	Long id;
+	private Long id;
 
 	@Version
-	Long version;
+	private Long version;
 
 	@PersistenceConstructor
-	public StateSnapshot(Long id, Long version, Long sequenceNumber, UUID aggregateId, LocalDateTime occurredAt,
-											 String name, LocalDateTime expireAt, LocalDateTime deliveredAt,
-											 String lastDoorId, LocalDateTime lastDoorEnteredAt) {
+	StateSnapshot(Long id, Long version, Long sequenceNumber, UUID aggregateId, LocalDateTime occurredAt,
+								String name, LocalDateTime expireAt, LocalDateTime deliveredAt,
+								String lastDoorId, LocalDateTime lastDoorEnteredAt) {
 		super(sequenceNumber, aggregateId, occurredAt, name, expireAt, deliveredAt, lastDoorId, lastDoorEnteredAt);
 		this.id = id;
 		this.version = version;
@@ -273,9 +273,9 @@ class StateSnapshot extends VisitorState {
 interface SnapshotStore extends ReactiveCrudRepository<StateSnapshot, Long> { }
 
 @SpringBootApplication
-public class R2dbcEventStoreApplication {
+public class DemoApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(R2dbcEventStoreApplication.class, args);
+		SpringApplication.run(DemoApplication.class, args);
 	}
 }
