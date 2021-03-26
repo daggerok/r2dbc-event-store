@@ -7,5 +7,5 @@ import org.springframework.boot.test.context.SpringBootTest;
 class R2dbcEventStoreApplicationTests {
 
 	@Test
-	void contextLoads() { }
+	void context() { }
 }
