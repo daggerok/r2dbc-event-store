@@ -1,7 +1,25 @@
 # R2DBC EventStore [![R2DBC EventStore](https://github.com/daggerok/r2dbc-event-store/actions/workflows/ci.yaml/badge.svg)](https://github.com/daggerok/r2dbc-event-store/actions/workflows/ci.yaml)
-Checkpoint event-sourced CQRS application based on Spring Boot and Spring WebFlux with EventStore based on R2DBC, Postgres and nkonev r2dbc migration tool
+Checkpoint event-sourced CQRS EventStore application based on Spring Boot and Spring WebFlux with R2DBC, Postgres and nkonev r2dbc migration tool
+
+## Getting started
+
+### test
+
+```bash
+./mvnw clean test
+```
+
+### run
+
+```bash
+./mvnw -P pg-start
+./mvnw spring-boot:run
+curl -iv 0:8080/event-stream
+```
 
 ## RTFM
+
+* https://projectreactor.io/docs/core/release/reference/#processors
 
 ### Reference Documentation
 For further reference, please consider the following sections:

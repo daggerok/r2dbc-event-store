@@ -8,8 +8,6 @@ import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-
 @Log4j2
 @SpringBootTest
 @DisplayName("A snapshot store tests")

@@ -4,14 +4,11 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.*;
 
 @Log4j2
 @SpringBootTest
@@ -52,7 +49,7 @@ class EventStoreTest {
 
   @Test
   void should_find_by_aggregate_id() {
-    StepVerifier.create(eventStore.findByAggregateIdOrderByAggregateIdAsc(UUID.fromString("0-0-0-0-1")))
+    StepVerifier.create(eventStore.findByAggregateIdOrderBySequenceNumberAsc(UUID.fromString("0-0-0-0-1")))
                 // .consumeNextWith(log::info)
                 .verifyComplete();
   }

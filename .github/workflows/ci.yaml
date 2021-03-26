@@ -31,5 +31,9 @@ jobs:
         java-version: 11
     - name: Resolve R2DBC EventStore maven dependencies
       run: ./mvnw -B dependency:resolve-plugins dependency:resolve
+    - name: Start Postgres database in Docker
+      run: ./mvnw -P pg-start
     - name: Verify maven tests and build R2DBC EventStore app
       run: ./mvnw clean test package
+    - name: Stop Docker...
+      run: ./mvnw -P pg-stop

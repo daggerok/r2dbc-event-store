@@ -16,7 +16,14 @@
   <description>Spring Boot R2DBC using Postgres</description>
   <properties>
     <java.version>11</java.version>
+    <postgres-db>postgres</postgres-db>
+    <postgres-port>5432</postgres-port>
+    <postgres-user>postgres</postgres-user>
+    <postgres-host>postgres</postgres-host>
+    <postgres-password>postgres</postgres-password>
+    <docker-repository>daggerok</docker-repository>
     <r2dbc-migrate.version>1.6.1</r2dbc-migrate.version>
+    <docker-maven-plugin.version>0.34.1</docker-maven-plugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -88,6 +95,85 @@
           </excludes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>${docker-maven-plugin.version}</version>
+        <configuration>
+          <follow>false</follow>
+          <verbose>true</verbose>
+          <useColor>true</useColor>
+          <logDate>default</logDate>
+          <autoPull>always</autoPull>
+          <keepRunning>false</keepRunning>
+          <watchInterval>500</watchInterval>
+          <allContainers>true</allContainers>
+          <removeVolumes>true</removeVolumes>
+          <imagePullPolicy>IfNotPresent</imagePullPolicy>
+          <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+          <images>
+            <image>
+              <name>${docker-repository}/${postgres-host}</name>
+              <alias>${postgres-host}</alias>
+              <build>
+                <tags>
+                  <tag>latest</tag>
+                  <tag>${project.version}</tag>
+                </tags>
+                <from>postgres:9.6.21-alpine</from>
+                <ports>
+                  <port>${postgres-port}</port>
+                </ports>
+                <env>
+                  <POSTGRES_DB>${postgres-db}</POSTGRES_DB>
+                  <POSTGRES_USER>${postgres-user}</POSTGRES_USER>
+                  <POSTGRES_PASSWORD>${postgres-password}</POSTGRES_PASSWORD>
+                  <POSTGRES_HOST>${postgres-host}.${project.artifactId}</POSTGRES_HOST>
+                  <POSTGRES_PORT>${postgres-port}</POSTGRES_PORT>
+                </env>
+                <healthCheck>
+                  <retries>9</retries>
+                  <timeout>3s</timeout>
+                  <interval>3s</interval>
+                  <startPeriod>3s</startPeriod>
+                  <cmd>pg_isready -h 127.0.0.1 -p ${postgres-port} -d $$POSTGRES_DB -U $$POSTGRES_USER</cmd>
+                </healthCheck>
+              </build>
+              <run>
+                <autoRemove>false</autoRemove>
+                <hostname>${postgres-host}</hostname>
+                <network>
+                  <mode>custom</mode>
+                  <name>${project.artifactId}</name>
+                  <alias>${postgres-host}</alias>
+                  <alias>${postgres-host}.${project.artifactId}</alias>
+                </network>
+                <ports>
+                  <port>${postgres-port}:${postgres-port}</port>
+                </ports>
+                <wait>
+                  <time>35000</time>
+                  <healthy>true</healthy>
+                </wait>
+              </run>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile><!-- ./mvnw -P start-pg  -->
+      <id>pg-start</id>
+      <build>
+        <defaultGoal>docker:build docker:start</defaultGoal>
+      </build>
+    </profile>
+    <profile><!-- ./mvnw -P stop-pg  -->
+      <id>pg-stop</id>
+      <build>
+        <defaultGoal>docker:stop docker:remove</defaultGoal>
+      </build>
+    </profile>
+  </profiles>
 </project>
