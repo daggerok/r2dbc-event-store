@@ -163,13 +163,13 @@
     </plugins>
   </build>
   <profiles>
-    <profile><!-- ./mvnw -P start-pg  -->
+    <profile><!-- ./mvnw -P pg-start  -->
       <id>pg-start</id>
       <build>
         <defaultGoal>docker:build docker:start</defaultGoal>
       </build>
     </profile>
-    <profile><!-- ./mvnw -P stop-pg  -->
+    <profile><!-- ./mvnw -P pg-stop  -->
       <id>pg-stop</id>
       <build>
         <defaultGoal>docker:stop docker:remove</defaultGoal>
