@@ -15,6 +15,11 @@ Checkpoint event-sourced CQRS EventStore application based on Spring Boot and Sp
 ./mvnw -P pg-start
 ./mvnw spring-boot:run
 curl -iv 0:8080/event-stream
+curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"VisitorRegisteredEvent","name":"Test visitor"}'
+curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"PassCardDeliveredEvent"}'
+curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"IN-1"}'
+curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"IN-2"}'
+curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"OUT-2"}'
 ```
 
 ## RTFM

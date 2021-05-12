@@ -1,5 +1,6 @@
 package com.github.daggerok.r2dbc;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
@@ -48,6 +49,7 @@ interface HistoricallyTrackable<TIME> {
 
 @Data
 @Table("domain_events")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED, onConstructor_ = @PersistenceConstructor)
 class DenormalizedEvent implements Identity<Long>, DomainEvent<UUID>, HistoricallyTrackable<LocalDateTime> {
