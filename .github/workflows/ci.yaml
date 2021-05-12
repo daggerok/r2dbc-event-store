@@ -1,19 +1,14 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
 name: R2DBC EventStore
-
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
 jobs:
-  build:
-
+  unit-tests:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Cache Checkpoint
@@ -31,9 +26,40 @@ jobs:
         java-version: 11
     - name: Resolve R2DBC EventStore maven dependencies
       run: ./mvnw -B dependency:resolve-plugins dependency:resolve
+    - run: ./mvnw clean test package
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: checkpoint
+      with:
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/com/gituhb/daggerok
+        key: ${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - name: Resolve R2DBC EventStore maven dependencies
+      run: ./mvnw -B dependency:resolve-plugins dependency:resolve
     - name: Start Postgres database in Docker
       run: ./mvnw -P pg-start
-    - name: Verify maven tests and build R2DBC EventStore app
-      run: ./mvnw clean test package
+    - name: Build R2DBC EventStore app
+      run: ./mvnw clean package -DskipTests
+    - run: java -jar ./target/*.jar &
+    - uses: actions/cache@v1
+      with:
+        path: ~/.n*
+        key: ${{ runner.os }}-r2dbc-event-store
+    - uses: actions/setup-node@v2
+    - run: npx wait-port 8080
+    - run: sudo apt-get install -y curl
+    - run: curl -iv 0:8080/event-stream &
+    - run: curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"VisitorRegisteredEvent","name":"Test visitor"}'
+    - run: curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"PassCardDeliveredEvent"}'
+    - run: curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"IN-1"}'
+    - run: curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"IN-2"}'
+    - run: curl -sS 0:8080/append-event -H'Content-Type:application/json' -d'{"aggregateId":"00000000-0000-0000-0000-000000000001","eventType":"EnteredTheDoorEvent","doorId":"OUT-2"}'
     - name: Stop Docker...
       run: ./mvnw -P pg-stop
